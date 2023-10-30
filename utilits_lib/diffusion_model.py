@@ -18,7 +18,7 @@ class diffusion_model():
         self.img_size = IMG_SIZE
         self.BATCH_SIZE = BATCH_SIZE
         self.addNoise = AddNoise(TimeStep=T, device=self.device)
-        self.model = UNet(time_dim=BATCH_SIZE, img_size=IMG_SIZE, device=self.device)
+        self.model = UNet(time_dim=BATCH_SIZE, img_size=IMG_SIZE, device=self.device).to(self.device)
 
     def __get_loss(self, x_0, t):
         x_t, noise = self.addNoise.train(x_0, t)
