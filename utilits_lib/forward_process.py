@@ -4,7 +4,6 @@ import torch.nn.functional as F
 
 class AddNoise:
     def __init__(self, TimeStep, device:str="cuda") -> None:
-        self.T = TimeStep
         self.betas = self.linear_schedule(timesteps=TimeStep).to(device)
     
     def gather(self, a, t, shape):
@@ -21,7 +20,7 @@ class AddNoise:
         '''
         return torch.linspace(start, end, timesteps)
     
-    def train_one_batch(self, x_clear, t):
+    def q(self, x_clear, t):
         '''
         x_clear: one image
         t: time index
@@ -40,5 +39,5 @@ class AddNoise:
         '''
         temp = []
         for d, t in zip(data, step):
-            temp.append(self.train_one_batch(d, t))        
+            temp.append(self.q(d, t))        
         return torch.stack(list(map(itemgetter(0), temp))), torch.stack(list(map(itemgetter(1), temp)))

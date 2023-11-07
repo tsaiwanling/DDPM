@@ -1,54 +1,47 @@
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from utilits_lib.forward_process import AddNoise
 from utilits_lib.reverse_process import UNet
-from functools import reduce
 from torch.optim import Adam
 
-import torch
-import matplotlib.pyplot as plt
-from torchvision import transforms
-
 class diffusion_model():
-    def __init__(self, T, IMG_SIZE, BATCH_SIZE) -> None:
+    def __init__(self, T:int = 100, img_size:int = 64, batch_size:int = 8) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.T = T
-        self.img_size = IMG_SIZE
-        self.BATCH_SIZE = BATCH_SIZE
+        self.img_size = img_size
+        self.batch_size = batch_size
         self.addNoise = AddNoise(TimeStep=T, device=self.device)
-        self.model = UNet(time_dim=BATCH_SIZE, img_size=IMG_SIZE, device=self.device).to(self.device)
+        self.model = UNet(time_dim=batch_size, img_size=img_size, device=self.device).to(self.device)
 
     def __get_loss(self, x_0, t):
         x_t, noise = self.addNoise.train(x_0, t)
-        self.model.train()
         noise_prediction = self.model(x_t, t)
         return F.mse_loss(noise, noise_prediction)
 
-    def train(self, dataset, lr=0.01, epochs=20):
+    def train(self, dataset, lr:float = 0.01, epochs:int = 20):
         '''
         dataset: maybe a set/list of images
         lr: learning rate, default=0.01
         epochs: times to epochs, default=20
         '''
-        dataloader = DataLoader(dataset, batch_size=self.BATCH_SIZE, shuffle=True, drop_last=True)
+        dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=True)
         optimizer = Adam(self.model.parameters(), lr=lr)
         self.loss = []
         for epoch in range(epochs):
-            if epoch % 1000 == 0:
-                lr = lr / 10
-                optimizer = Adam(self.model.parameters(), lr=lr)
+            self.model.train()
+            if (epoch+1) % 100 == 0:
+                print(f"Epoch {epoch + 1} | Loss: {loss.item()} ")
             for step, batch in enumerate(dataloader):
                 optimizer.zero_grad()
-                t = torch.randint(0, self.T, (self.BATCH_SIZE, 1), device=self.device).long()
+                t = torch.randint(0, self.T, (self.batch_size, 1), device=self.device).long()
                 loss = self.__get_loss(batch[0], t)
                 loss.backward()
                 optimizer.step()
                 self.loss.append(loss.item())
                 torch.cuda.empty_cache()
-                if (epoch+1) % 1000 == 0 and step == 0:
-                    print(f"Epoch {epoch} | Loss: {loss.item()} ")
+                if loss.item() <1e-2:
+                    optimizer = Adam(self.model.parameters(), lr=lr/10)
 
                 if loss.item() < 1e-5:
                     break
