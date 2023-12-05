@@ -23,8 +23,6 @@ Denoising Diffusion Probabilistic Models
 ## Usage
 ### Data Preparing
 You can prepare the dataset by referring to `DataProcess.ipynb`, then save the dataset as .pkl file.<br>
-For example:<br>
-![Alt text](image.png)
 
 ### Training
 To train a diffusion model, using `train.py` 
