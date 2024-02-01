@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 
 class AddNoise:
-    def __init__(self, TimeStep, device:str="cuda") -> None:
-        self.betas = self.linear_schedule(timesteps=TimeStep).to(device)
+    def __init__(self, TimeStep, beta0=1e-5, beta1=0.02, device:str="cuda") -> None:
+        self.betas = self.linear_schedule(timesteps=TimeStep, start=beta0, end=beta1).to(device)
     
     def gather(self, a, t, shape):
         '''
