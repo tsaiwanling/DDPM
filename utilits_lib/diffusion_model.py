@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from utilits_lib.forward_process import AddNoise
 from utilits_lib.reverse_process import UNet
 from torch.optim import Adam
+from tqdm import tqdm
 
 class diffusion_model():
     def __init__(self, T:int = 100, img_size:int = 64, batch_size:int = 8) -> None:
@@ -28,9 +29,9 @@ class diffusion_model():
         dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=True)
         optimizer = Adam(self.model.parameters(), lr=lr)
         self.loss = []
-        for epoch in range(epochs):
+        for epoch in tqdm(range(epochs)):
             self.model.train()
-            if (epoch+1) % 100 == 0:
+            if (epoch+1) % 1000 == 0:
                 print(f"Epoch {epoch + 1} | Loss: {loss.item()} ")
             for step, batch in enumerate(dataloader):
                 optimizer.zero_grad()
