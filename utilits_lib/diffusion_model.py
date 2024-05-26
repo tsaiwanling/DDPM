@@ -89,4 +89,5 @@ class diffusion_model():
         img = torch.randn((1, 3, self.img_size, self.img_size), device=self.device) # generate white noise
         for i in range(0, self.T)[::-1]: # repair from step T to step 1
             img = self.sample_timestep(img, i)
+        img = 2* (img - img.min())/(img.max() - img.min()) - 1 # scale to -1 to 1
         return img
